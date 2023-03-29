@@ -34,6 +34,14 @@ app.get('/api/persons', (request, response) => {
 })
 
 
+app.get('/info', (request, response) => {
+    const utcdate = new Date()
+    const localdate = utcdate.toString()
+    response.write(`<p> Phonebook has info for ${persons.length} people</p>`)
+    response.write(`<p> ${localdate} </p>`)
+    response.end()
+} )
+
 
 const PORT = 3001
 app.listen(PORT)
