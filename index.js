@@ -2,8 +2,47 @@ const express = require('express')
 const app = express()
 app.use(express.json())
 
-const morgan = require('morgan')
-app.use(morgan('tiny'))
+var morgan = require('morgan')
+//app.use(morgan('tiny'))
+//app.use(morgan(':method :host :status :param[id] :res[content-length] - :response-time ms'));
+
+morgan.token('body', request => {
+    //console.log(req.method)
+    if (request.method !== 'POST') {
+        //console.log('method is not POST')
+        //return JSON.stringify(`\u0020`)
+        return 
+    }
+    return JSON.stringify(request.body)
+}
+    )
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
+
+
+// app.use(morgan(function (tokens, req, res) {
+//     if (tokens.method(req, res) === "POST"){
+//     return [
+//         tokens.method(req, res),
+//         tokens.url(req, res),
+//         tokens.status(req, res),
+//         tokens.res(req, res, 'content-length'),
+//         "-",
+//         tokens['response-time'](req, res),
+//         "ms",
+//         tokens.body(req, res)
+//     ].join(' ')}
+//     return [
+//         tokens.method(req, res),
+//         tokens.url(req, res),
+//         tokens.status(req, res),
+//         tokens.res(req, res, 'content-length'),
+//         "-",
+//         tokens['response-time'](req, res),
+//         "ms"
+//     ].join(' ')
+
+// }))
+
 
 
 let persons = [
@@ -48,11 +87,11 @@ app.get('/info', (request, response) => {
 } )
 
 app.get('/api/persons/:id', (request, response) => {
-    console.log("person")
+    //console.log("person")
     const id = Number(request.params.id)
-    console.log(id)
+    //console.log(id)
     const person = persons.find(person =>  {
-        console.log(person.id === id)
+        //console.log(person.id === id)
         return person.id === id
     })
     if (person){
@@ -65,16 +104,16 @@ app.get('/api/persons/:id', (request, response) => {
 
 app.delete('/api/persons/:id', (request, response) => {
     const id = Number(request.params.id)
-    console.log("in delete, id", id)
+    //console.log("in delete, id", id)
     persons = persons.filter(person => person.id !== id)
     response.status(204).end()
 })
 
 
 app.post('/api/persons', (request, response) => {
-    const person = request.body
+    const person = JSON.parse(JSON.stringify(request.body))
     person.id = Math.floor(Math.random()*1000000000)
-    console.log(person)
+    //console.log(person)
     if (!person.name){
         return response.status(400).json({
             error: 'name cannot be empty'
@@ -89,7 +128,7 @@ app.post('/api/persons', (request, response) => {
     const person_exists = persons.find(person_exists => {
         return person_exists.name === person.name
     })
-    console.log("Person exist", person_exists)
+    //console.log("Person exist", person_exists)
     if (person_exists) {
         return response.status(400).json({
             error: 'name already exists'
