@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require('express')
 const app = express()
 app.use(express.json())
@@ -15,35 +16,50 @@ morgan.token('body', request => {
 }
     )
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
-
-
 const cors = require('cors')
 app.use(cors())
-
 app.use(express.static('build'))
 
-let persons = [
-    { 
-      "id": 1,
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": 2,
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": 3,
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": 4,
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-]
+
+
+
+const url = process.env.MONGODB_URl
+const mongoose = require('mongoose')
+//const url `mongodb+srv://testuser:${password}@cluster0.lngrmwx.mongodb.net/?retryWrites=true&w=majority`
+mongoose.set('strictQuery', false)
+mongoose.connect(url)
+
+const personSchema = new mongoose.Schema({
+    name: String,
+    number: String
+  })
+  
+const Person = mongoose.model('Person', personSchema)
+
+console.log(typeof Person)
+
+// let persons = [
+//     { 
+//       "id": 1,
+//       "name": "Arto Hellas", 
+//       "number": "040-123456"
+//     },
+//     { 
+//       "id": 2,
+//       "name": "Ada Lovelace", 
+//       "number": "39-44-5323523"
+//     },
+//     { 
+//       "id": 3,
+//       "name": "Dan Abramov", 
+//       "number": "12-43-234345"
+//     },
+//     { 
+//       "id": 4,
+//       "name": "Mary Poppendieck", 
+//       "number": "39-23-6423122"
+//     }
+// ]
 
 // this is not necessary for functionality, but for testing purposes here
 app.get('/', (request, response) => {
@@ -51,38 +67,50 @@ app.get('/', (request, response) => {
 })
 
 app.get('/api/persons', (request, response) => {
-    response.json(persons)
+    Person.find({}).then(persons=> {
+        console.log(persons.length)
+        response.json(persons)
+    })
+    //response.json(persons)
 })
 
 
 app.get('/info', (request, response) => {
     const utcdate = new Date()
     const localdate = utcdate.toString()
-    response.write(`<p> Phonebook has info for ${persons.length} people</p>`)
-    response.write(`<p> ${localdate} </p>`)
-    response.end()
+    
+    Person.find({}).then(persons=> {
+        console.log(persons.length)
+        const lnt = persons.length
+        console.log(lnt)
+        response.write(`<p> Phonebook has info for ${lnt} people</p>`)
+        response.write(`<p> ${localdate} </p>`)
+        response.end()
+    })
 } )
 
 app.get('/api/persons/:id', (request, response) => {
     //console.log("person")
-    const id = Number(request.params.id)
+    //const id = Number(request.params.id)
     //console.log(id)
-    const person = persons.find(person =>  {
-        //console.log(person.id === id)
-        return person.id === id
-    })
-    if (person){
-        response.json(person)
-    } else {
-        response.status(404).end()
-    }
-
+    Person.findById(request.params.id)
+        .then(person => {
+            if (person){
+                response.json(person)
+            } else {
+                response.status(404).end()
+            }
+        })
+        .catch(error => {
+            console.log(error)
+            response.status(500).end()
+        })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
     const id = Number(request.params.id)
     //console.log("in delete, id", id)
-    persons = persons.filter(person => person.id !== id)
+    persons = Person.filter(person => person.id !== id)
     response.status(204).end()
 })
 
@@ -102,7 +130,7 @@ app.post('/api/persons', (request, response) => {
         })
     }
 
-    const person_exists = persons.find(person_exists => {
+    const person_exists = Person.find(person_exists => {
         return person_exists.name === person.name
     })
     //console.log("Person exist", person_exists)
