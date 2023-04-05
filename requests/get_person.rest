@@ -2,7 +2,7 @@ GET http://localhost:3001/api/persons/642d574631e6ba97cf8592e8
 
 ###
 
-GET http://localhost:3001/api/person/5
+GET http://localhost:3001/api/persons/5
 
 ###
-GET http://localhost:3001/api/person/5
+GET http://localhost:3001/api/persons/5

@@ -8,8 +8,6 @@ var morgan = require('morgan')
 morgan.token('body', request => {
     //console.log(req.method)
     if (request.method !== 'POST') {
-        //console.log('method is not POST')
-        //return JSON.stringify(`\u0020`)
         return 
     }
     return JSON.stringify(request.body)
@@ -22,6 +20,31 @@ app.use(express.static('build'))
 
 const Person = require('./models/person')
 
+const requestLogger = (request, response, next) => {
+    console.log('Method:', request.method)
+    console.log('Path:  ', request.path)
+    console.log('Body:  ', request.body)
+    console.log('---')
+    next()
+  }
+
+const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: 'unknown endpoint' })
+  }
+
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+  
+    if (error.name === 'CastError') {
+      return response.status(400).send({ error: 'malformatted id' })
+    } else if (error.name === 'ValidationError') {
+      return response.status(400).json({ error: error.message })
+    }
+  
+    next(error)
+  }
+
+app.use(requestLogger)
 
 // this is not necessary for functionality, but for testing purposes here
 app.get('/', (request, response) => {
@@ -50,35 +73,32 @@ app.get('/info', (request, response) => {
     })
 } )
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
     Person.findById(request.params.id)
         .then(person => {
             if (person){
+                console.log("id found")
                 response.json(person)
             } else {
+                console.log("id NOT found")
                 response.status(404).end()
             }
         })
-        .catch(error => {
-            console.log(error)
-            response.status(500).end()
-        })
+        .catch(error => next(error))
 })
 
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
     Person.findByIdAndRemove(request.params.id)
         .then(result => {
             response.status(204).end()
         })
-        .catch(error => {
-            console.log(error)
-        })
+        .catch(error => next(error))
 })
 
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
     const person = JSON.parse(JSON.stringify(request.body))
-    person.id = Math.floor(Math.random()*1000000000)
+    //person.id = Math.floor(Math.random()*1000000000)
     if (!person.name){
         return response.status(400).json({
             error: 'name cannot be empty'
@@ -89,8 +109,6 @@ app.post('/api/persons', (request, response) => {
             error: 'number cannot be empty'
         })
     }
-
-
     const newPerson = new Person({
         name: request.body.name,
         number: request.body.number
@@ -100,11 +118,15 @@ app.post('/api/persons', (request, response) => {
     newPerson.save()
         .then(result => {
             console.log('saved to mongoDB')
+            response.json(newPerson)
         })
+        .catch(error => next(error))
 
 
-    response.json(newPerson)
 })
+
+app.use(unknownEndpoint)
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT)
