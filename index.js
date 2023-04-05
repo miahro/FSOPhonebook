@@ -20,46 +20,8 @@ const cors = require('cors')
 app.use(cors())
 app.use(express.static('build'))
 
+const Person = require('./models/person')
 
-
-
-const url = process.env.MONGODB_URl
-const mongoose = require('mongoose')
-//const url `mongodb+srv://testuser:${password}@cluster0.lngrmwx.mongodb.net/?retryWrites=true&w=majority`
-mongoose.set('strictQuery', false)
-mongoose.connect(url)
-
-const personSchema = new mongoose.Schema({
-    name: String,
-    number: String
-  })
-  
-const Person = mongoose.model('Person', personSchema)
-
-console.log(typeof Person)
-
-// let persons = [
-//     { 
-//       "id": 1,
-//       "name": "Arto Hellas", 
-//       "number": "040-123456"
-//     },
-//     { 
-//       "id": 2,
-//       "name": "Ada Lovelace", 
-//       "number": "39-44-5323523"
-//     },
-//     { 
-//       "id": 3,
-//       "name": "Dan Abramov", 
-//       "number": "12-43-234345"
-//     },
-//     { 
-//       "id": 4,
-//       "name": "Mary Poppendieck", 
-//       "number": "39-23-6423122"
-//     }
-// ]
 
 // this is not necessary for functionality, but for testing purposes here
 app.get('/', (request, response) => {
@@ -71,7 +33,6 @@ app.get('/api/persons', (request, response) => {
         console.log(persons.length)
         response.json(persons)
     })
-    //response.json(persons)
 })
 
 
@@ -118,7 +79,6 @@ app.delete('/api/persons/:id', (request, response) => {
 app.post('/api/persons', (request, response) => {
     const person = JSON.parse(JSON.stringify(request.body))
     person.id = Math.floor(Math.random()*1000000000)
-    //console.log(person)
     if (!person.name){
         return response.status(400).json({
             error: 'name cannot be empty'
@@ -130,18 +90,20 @@ app.post('/api/persons', (request, response) => {
         })
     }
 
-    const person_exists = Person.find(person_exists => {
-        return person_exists.name === person.name
-    })
-    //console.log("Person exist", person_exists)
-    if (person_exists) {
-        return response.status(400).json({
-            error: 'name already exists'
-        })
-    }
 
-    persons = persons.concat(person)
-    response.json(person)
+    const personX = new Person({
+        name: request.body.name,
+        number: request.body.number
+    })
+
+    console.log(personX.name, personX.number)
+    personX.save()
+        .then(result => {
+            console.log('saved to mongoDB')
+        })
+
+
+    response.json(personX)
 })
 
 const PORT = process.env.PORT || 3001
