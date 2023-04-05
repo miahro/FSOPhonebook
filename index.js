@@ -51,9 +51,6 @@ app.get('/info', (request, response) => {
 } )
 
 app.get('/api/persons/:id', (request, response) => {
-    //console.log("person")
-    //const id = Number(request.params.id)
-    //console.log(id)
     Person.findById(request.params.id)
         .then(person => {
             if (person){
@@ -69,10 +66,13 @@ app.get('/api/persons/:id', (request, response) => {
 })
 
 app.delete('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    //console.log("in delete, id", id)
-    persons = Person.filter(person => person.id !== id)
-    response.status(204).end()
+    Person.findByIdAndRemove(request.params.id)
+        .then(result => {
+            response.status(204).end()
+        })
+        .catch(error => {
+            console.log(error)
+        })
 })
 
 
@@ -91,19 +91,19 @@ app.post('/api/persons', (request, response) => {
     }
 
 
-    const personX = new Person({
+    const newPerson = new Person({
         name: request.body.name,
         number: request.body.number
     })
 
-    console.log(personX.name, personX.number)
-    personX.save()
+    console.log(newPerson.name, newPerson.number)
+    newPerson.save()
         .then(result => {
             console.log('saved to mongoDB')
         })
 
 
-    response.json(personX)
+    response.json(newPerson)
 })
 
 const PORT = process.env.PORT || 3001
