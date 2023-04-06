@@ -1,4 +1,4 @@
-const url = process.env.MONGODB_URl
+const url = process.env.MONGODB_URI
 const mongoose = require('mongoose')
 
 mongoose.set('strictQuery', false)

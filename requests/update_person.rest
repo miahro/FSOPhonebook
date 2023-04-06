@@ -5,3 +5,22 @@ content-type: application/json
     "name": "Asko Vilenius",
     "number": "555-625-xx"
 }
+
+###
+
+PUT http://localhost:3001/api/persons/642e504b83aaf88a1a75606e
+content-type: application/json
+
+{
+    "name": "Asko Vilenius",
+    "number": "555-625"
+}
+
+###
+PUT http://localhost:3001/api/persons/642e504b83aaf88a1a75606e
+content-type: application/json
+
+{
+    "name": "Asko Vilenius",
+    "number": "555-625256"
+}
