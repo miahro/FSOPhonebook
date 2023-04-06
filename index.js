@@ -125,6 +125,27 @@ app.post('/api/persons', (request, response, next) => {
 
 })
 
+app.put('/api/persons/:id', (request, response, next) => {
+    const body = request.body
+    const person = {
+        name: request.body.name,
+        number: request.body.number
+    }
+    const id = request.params.id
+
+    Person.findByIdAndUpdate(
+        request.params.id,
+        person
+        )
+        .then(updatedPerson => {
+            response.json(updatedPerson)
+        })
+        .catch((error) => {
+            console.log("Error in PUT")
+            next(error)})
+
+})
+
 app.use(unknownEndpoint)
 app.use(errorHandler)
 
