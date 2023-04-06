@@ -132,10 +132,12 @@ app.put('/api/persons/:id', (request, response, next) => {
         number: request.body.number
     }
     const id = request.params.id
+    const options = {runValidators: true}
 
     Person.findByIdAndUpdate(
         request.params.id,
-        person
+        person,
+        options
         )
         .then(updatedPerson => {
             response.json(updatedPerson)
